@@ -37,13 +37,13 @@ while True:
         repeatable = repeatable != "0"
 
         if atype == "BREW":
-            queue = brews
+            event = brews
         elif atype == "CAST":
-            queue = casts
+            event = casts
         else:
-            queue = other
+            event = other
 
-        queue.append(
+        event.append(
             {
                 "id": aid,
                 "type": atype,
