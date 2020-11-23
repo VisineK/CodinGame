@@ -1,6 +1,8 @@
 import sys
 import random
 from pprint import pprint
+import time
+
 
 # I replaced "action_?" with "a?" for readability issues
 #            "delta_?" with "d?"
@@ -34,9 +36,12 @@ class Inventory:
         self.inventory = list(map(int, input().split()))[:-1]
 
     def afford(self, delta):
+        print(self.inventory, file=sys.stderr)
         for i in range(4):
             if delta[i] < 0 and self.inventory[i] < -delta[i]:
                 return False
+        if sum(delta) + sum(self.inventory) > 10:
+            return False
         return True
 
     def copy(self):
@@ -56,7 +61,7 @@ class ActionList:
 
     def copy(self):
         other = ActionList()
-        for action in actions:
+        for action in self.actions:
             new_action = {}
             for key, value in action.items():
                 if type(value) == list:
@@ -73,6 +78,10 @@ class ActionList:
         return len(self.actions)
 
 
+class InvalidMoveError(Exception):
+    pass
+
+
 class Witch:
     inv = None
     casts = None
@@ -87,7 +96,6 @@ class Witch:
         self.brews = ActionList()
         self.casts = ActionList()
         self.learns = ActionList()
-
         for i in range(acount):
             (
                 aid,
@@ -102,7 +110,6 @@ class Witch:
                 castable,
                 repeatable,
             ) = input().split()
-
             d0 = int(d0)
             d1 = int(d1)
             d2 = int(d2)
@@ -113,14 +120,12 @@ class Witch:
             castable = castable != "0"
             repeatable = repeatable != "0"
             event = []
-
             if atype == "BREW":
                 event = self.brews
             elif atype == "CAST":
                 event = self.casts
             elif atype == "LEARN":
                 event = self.learns
-
             event.append(
                 {
                     'id': aid,
@@ -133,15 +138,8 @@ class Witch:
                     'repeatable': repeatable,
                 }
             )
-
         self.inv = Inventory()
         self.inv.load()
-
-    def get_successors(self):
-        pass
-
-    def can_brew(self):
-        return any(inv.afford(brew) for brew in brews)
 
     def get_move(self):
         max_inventory = []
@@ -192,15 +190,98 @@ class Witch:
                 except IndexError:
                     return "REST"
 
+    def __copy(self):
+#           other = self__class__()
+            other = Witch()
+            other.brews = self.brews.copy()
+            other.casts = self.casts.copy()
+            other.learns = self.learns.copy()
+            other.inv = self.inv.copy()
+            return other
+
+    def can_brew(self):
+        brewable = [brew for brew in self.brews if self.inv.afford(brew['delta'])]
+        if brewable:
+            return random.choice([brew['id'] for brew in brewable])
+        else:
+            return False
+
+
+    def do_rest(self):
+        other = self.__copy()
+        valid = False
+        for spell in other.casts.actions:
+            if not spell['castable']:
+                valid = True
+                spell['castable'] = True
+        if valid:
+            return other
+        else:
+            raise InvalidMoveError('REST move invalid')
+
+
+    def do_cast(self, idx):
+        # TODO: repeatable spells
+        other = self.__copy()
+        cast = other.casts[idx]
+        if not cast['castable']:
+            raise InvalidMoveError('Non-castable spell')
+        if not self.inv.afford(cast['delta']):
+            raise InvalidMoveError('Can\'t afford spell')
+        for i in range (4):
+            other.inv.inventory[i] += cast['delta'][i]
+        cast['castable']  = False
+        return other
+
+    def do_learn(self, idx):
+        other = self.__copy
+        return other
+
+    def get_successors(self):
+        """ Return a pair : (move, state) """
+        res = []
+        try:
+            res.append(("REST", self.do_rest()))
+        except InvalidMoveError:
+            pass
+        for i in range(len(self.casts)):
+            try:
+                res.append(("CAST " + self.casts[i]['id'], self.do_cast(i)))
+            except InvalidMoveError:
+                pass
+                '''
+        for i in len(self.learns):
+            try:
+                res.append(self.do_learn(i))
+            except InvalidMoveError:
+                pass
+                '''
+        return res
+    
+class BreadthWitch(Witch):
+    def get_move(self, deadline):
+        if self.can_brew():
+            return "BREW " + self.can_brew()
+        q = [([], self)]
+        while time.time() < deadline:
+            moves, state = q.pop(0)
+            if state.can_brew():
+                print(moves, file=sys.stderr)
+                return moves[0] + " AhAh!"
+            for move, succ in state.get_successors():
+                q.append((moves + [move], succ))
+        return super().get_move()
+
 
 ##########################################  GAME LOOP  ######################################
 while True:
-    state = Witch()
+    deadline = time.time() + 0.040
+    state = BreadthWitch()
     state.load()
 
     enemy_inventory = list(map(int, input().split()))[:-1]
     
-    print(state.get_move())
+    print(state.get_move(deadline=deadline))
 
 
 
