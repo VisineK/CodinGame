@@ -8,7 +8,7 @@ DEBUG = True
 random.seed(1337)
 
 # learning frequency
-LEARN_RATE = [
+LEARN_FREQ = [
     1.0,
     1.0,
     1.0,
@@ -22,7 +22,7 @@ LEARN_RATE = [
     0.0001,
     0,
 ]
-LEARN_RATE = [0.0] * 60
+LEARN_FREQ = [0.0] * 60
 
 
 class Inventory:
@@ -180,7 +180,7 @@ class Witch:
             )
         except IndexError:
             if (
-                random.random() < LEARN_RATE[len(self.casts)]
+                random.random() < LEARN_FREQ[len(self.casts)]
                 and self.learns[0]["give"]
             ):
                 return "LEARN " + self.learns[0]["id"]
