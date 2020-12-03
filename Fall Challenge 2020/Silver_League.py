@@ -25,6 +25,7 @@ LEARN_FREQ = [
 LEARN_FREQ = [0.0] * 60
 
 
+# Inventory management
 class Inventory:
     inventory = None
 
@@ -48,6 +49,7 @@ class Inventory:
         return other
 
 
+# Management the actions that the witch can carry out 
 class ActionList:
     actions = None
 
@@ -80,6 +82,7 @@ class InvalidMoveError(Exception):
     pass
 
 
+# Initializes the different possible actions for the witch
 class Witch:
     inv = None
     casts = None
@@ -141,6 +144,7 @@ class Witch:
             )
         self.inv = Inventory()
         self.inv.load()
+
 
     def get_move(self):
         max_inventory = []
