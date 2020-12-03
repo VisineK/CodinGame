@@ -10,8 +10,8 @@ import time
 
 random.seed(1337)
 
-# freq learn
-LEARN_RATE = [
+# learning frequency
+LEARN_FREQ = [
     1.0,
     1.0,
     1.0,
@@ -176,7 +176,7 @@ class Witch:
             return "BREW " + random.choice(
                 [brew['id'] for brew in self.brews if brew['give']])
         except IndexError:
-            if random.random() < LEARN_RATE[len(self.casts)] and self.learns[0]['give']:
+            if random.random() < LEARN_FREQ[len(self.casts)] and self.learns[0]['give']:
                 return "LEARN " + self.learns[0]['id']
             else:
                 try:
