@@ -308,4 +308,4 @@ while True:
 
     enemy_inventory = list(map(int, input().split()))[:-1]
 
-    print(state.get_move(end=end))
+    print(state.get_move(end=end)) 
