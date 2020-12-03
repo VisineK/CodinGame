@@ -67,38 +67,38 @@ while True:
     # To debug: print("Debug messages...", file=sys.stderr, flush=True)
 
     for brew in brews:
-        afford = True
+        give = True
         for i in range(4):
             if -brew['delta'][i] > inventory[0][i]:
-                afford = False
-        brew['afford'] = afford
+                give = False
+        brew['give'] = give
 
 
     for cast in casts:
-        afford = True
+        give = True
         for i in range(4):
             if cast['delta'][i] < 0 and -cast['delta'][i] > inventory[0][i]:
-                afford = False
+                give = False
             if inventory[0][i] + cast['delta'][i] > 4:
-                afford = False
+                give = False
         if sum(cast['delta']) + sum(inventory[0]) > 10:
             print("Full up with", sum(inventory[0]), file=sys.stderr)
-            afford = False
-        cast['afford'] = afford
+            give = False
+        cast['give'] = give
         cast['sum_delta'] = sum(cast['delta'])
 
 
-    brews.sort(key=lambda x:(x['afford'], x['price']), reverse=True)
-    casts.sort(key=lambda x:(x['afford'], x['castable'], -x['sum_delta']), reverse=True)
+    brews.sort(key=lambda x:(x['give'], x['price']), reverse=True)
+    casts.sort(key=lambda x:(x['give'], x['castable'], -x['sum_delta']), reverse=True)
 
     pprint(brews, stream=sys.stderr)
     pprint(casts, stream=sys.stderr)
     pprint(inventory, stream=sys.stderr)
 
     try:
-        print("BREW " + random.choice([brew['id'] for brew in brews if brew['afford']]))
+        print("BREW " + random.choice([brew['id'] for brew in brews if brew['give']]))
     except IndexError:
         try:
-            print("CAST  " + random.choice([cast['id'] for cast in casts if cast['afford'] and cast['castable']]))
+            print("CAST  " + random.choice([cast['id'] for cast in casts if cast['give'] and cast['castable']]))
         except IndexError:
             print("REST") 
